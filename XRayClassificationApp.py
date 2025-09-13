@@ -218,8 +218,8 @@ class XrayApp(QWidget):
 
                 # Convert matplotlib figure to QPixmap
                 w, h = fig.canvas.get_width_height()
-                buf = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8).reshape(h, w, 3)
-                qimg = QImage(buf.data, w, h, 3 * w, QImage.Format_RGB888)
+                buf = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8).reshape(h, w, 4)
+                qimg = QImage(buf.data, w, h, 4 * w, QImage.Format_RGBA8888)  
                 pixmap = QPixmap.fromImage(qimg)
 
                 container = QWidget()
