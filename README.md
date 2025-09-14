@@ -28,7 +28,7 @@ This tool allows users to:
 
 ### 1. Clone the repository
 ```bash
-git clone [https://github.com/your-username/xray-classification-gui.git](https://github.com/surajitiitkgp/XRayClassificationApp.git)
+git clone https://github.com/surajitiitkgp/XRayClassificationApp.git
 cd XRayClassificationApp
 
 python -m venv venv
