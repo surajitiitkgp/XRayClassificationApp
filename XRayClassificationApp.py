@@ -69,6 +69,10 @@ class XrayApp(QWidget):
         self.run_btn.clicked.connect(self.run_classification)
         layout.addWidget(self.run_btn)
 
+        self.reset_btn = QPushButton("Reset", self)
+        self.reset_btn.clicked.connect(self.reset_app)
+        layout.addWidget(self.reset_btn)        
+
         # Scrollable image viewer
         self.scroll_area = QScrollArea(self)
         self.scroll_area.setWidgetResizable(True)
@@ -93,6 +97,16 @@ class XrayApp(QWidget):
     def load_folder(self):
         self.folder_path = QFileDialog.getExistingDirectory(self, "Select Folder")
         if self.folder_path:
+            # reset outputs
+            self.output_text.clear()
+            self.progress.setValue(0)
+
+            # clear scroll area images
+            while self.scroll_layout.count():
+                child = self.scroll_layout.takeAt(0)
+                if child.widget():
+                    child.widget().deleteLater()
+
             self.output_text.append(f"Selected folder: {self.folder_path}")
 
     def set_weight(self, weight_name):
@@ -118,6 +132,32 @@ class XrayApp(QWidget):
         if pathology_name.strip():
             self.selected_pathology = pathology_name
             self.output_text.append(f"Selected pathology: {self.selected_pathology}")
+
+    def reset_app(self):
+        # Clear text output
+        self.output_text.clear()
+
+        # Reset progress
+        self.progress.setValue(0)
+
+        # Clear images from scroll area
+        while self.scroll_layout.count():
+            child = self.scroll_layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+
+        # Reset dropdown selections
+        self.weight_dropdown.setCurrentIndex(0)
+        self.pathology_dropdown.clear()
+
+        # Reset variables
+        self.folder_path = ""
+        self.model = None
+        self.selected_weight = None
+        self.selected_pathology = None
+
+        QMessageBox.information(self, "Reset", "Application has been reset.")
+
 
     def run_classification(self):
         if not self.folder_path:
@@ -218,8 +258,10 @@ class XrayApp(QWidget):
 
                 # Convert matplotlib figure to QPixmap
                 w, h = fig.canvas.get_width_height()
+                # buf = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8).reshape(h, w, 3)
+                # qimg = QImage(buf.data, w, h, 3 * w, QImage.Format_RGB888)
                 buf = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8).reshape(h, w, 4)
-                qimg = QImage(buf.data, w, h, 4 * w, QImage.Format_RGBA8888)  
+                qimg = QImage(buf.data, w, h, 4 * w, QImage.Format_RGBA8888)                
                 pixmap = QPixmap.fromImage(qimg)
 
                 container = QWidget()
