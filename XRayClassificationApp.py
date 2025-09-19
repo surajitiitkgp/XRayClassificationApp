@@ -188,7 +188,9 @@ class XrayApp(QWidget):
 
         results = []
         save_dir = os.path.join(self.folder_path, "results")
-        os.makedirs(save_dir, exist_ok=True)        
+        os.makedirs(save_dir, exist_ok=True)     
+        activation_map_dir = os.path.join(self.folder_path, "activation_maps")
+        os.makedirs(activation_map_dir, exist_ok=True)   
         for idx, dcm_file in enumerate(dcm_files):
             try:
                 img_ds = pydicom.dcmread(dcm_file)
@@ -246,8 +248,12 @@ class XrayApp(QWidget):
                     size=(224, 224),
                     mode="bilinear",
                     align_corners=False
-                ).squeeze()
+                ).squeeze().detach().cpu().numpy()
 
+                # Save activation map as .npy with same filename as input DICOM
+                npy_filename = os.path.splitext(os.path.basename(dcm_file))[0] + ".npy"
+                npy_path = os.path.join(activation_map_dir, npy_filename)
+                np.save(npy_path, cam_resized)
 
                 # --- Visualization update ---
                 fig, ax = plt.subplots(figsize=(8, 8), dpi=100)
