@@ -191,6 +191,8 @@ class XrayApp(QWidget):
         os.makedirs(save_dir, exist_ok=True)     
         activation_map_dir = os.path.join(self.folder_path, "activation_maps")
         os.makedirs(activation_map_dir, exist_ok=True)   
+        jpeg_dir = os.path.join(self.folder_path, "activation_maps_jpeg")
+        os.makedirs(jpeg_dir, exist_ok=True)         
         for idx, dcm_file in enumerate(dcm_files):
             try:
                 img_ds = pydicom.dcmread(dcm_file)
@@ -255,11 +257,17 @@ class XrayApp(QWidget):
                 npy_path = os.path.join(activation_map_dir, npy_filename)
                 np.save(npy_path, cam_resized)
 
+
+                # Save heatmap overlay as JPEG
+                jpeg_filename = os.path.splitext(os.path.basename(dcm_file))[0] + ".jpg"
+                jpeg_path = os.path.join(jpeg_dir, jpeg_filename)
                 # --- Visualization update ---
                 fig, ax = plt.subplots(figsize=(8, 8), dpi=100)
                 ax.imshow(img[None,...].squeeze().cpu(), cmap="gray")
                 ax.imshow(cam_resized, cmap="jet", alpha=0.5)
                 ax.axis("off")
+                plt.tight_layout()
+                fig.savefig(jpeg_path, dpi=150, bbox_inches="tight", pad_inches=0)                
                 fig.canvas.draw()
 
                 # Convert matplotlib figure to QPixmap
