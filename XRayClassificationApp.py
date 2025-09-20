@@ -18,6 +18,7 @@ from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import Qt
 import matplotlib.pyplot as plt
 from PyQt5.QtWidgets import QScrollArea, QWidget
+from PyQt5.QtWidgets import QDoubleSpinBox
 
 
 class XrayApp(QWidget):
@@ -57,6 +58,16 @@ class XrayApp(QWidget):
         ])
         self.weight_dropdown.currentTextChanged.connect(self.set_weight)
         layout.addWidget(self.weight_dropdown)
+
+        # Threshold control
+        self.threshold_label = QLabel("Classification threshold:")
+        layout.addWidget(self.threshold_label)
+
+        self.threshold_spin = QDoubleSpinBox(self)
+        self.threshold_spin.setRange(0.0, 1.0)   # valid probability range
+        self.threshold_spin.setSingleStep(0.05)  # step size
+        self.threshold_spin.setValue(0.5)        # default value
+        layout.addWidget(self.threshold_spin)        
 
         # Dropdown for pathologies (populated after model loads)
         self.pathology_label = QLabel("Select pathology to check:")
@@ -213,8 +224,11 @@ class XrayApp(QWidget):
                 cam_extractor = SmoothGradCAMpp(self.model, target_layer="features.norm5")
 
                 scores = self.model(img[None, ...])
+                # prob = scores[0][pathology_idx].item()
+                # flag = prob > 0.5
+                threshold = self.threshold_spin.value()
                 prob = scores[0][pathology_idx].item()
-                flag = prob > 0.5
+                flag = prob > threshold                
 
                 if flag:
                     correct += 1
